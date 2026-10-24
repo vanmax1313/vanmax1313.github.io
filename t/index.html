@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Ride with me</title>
+<style>
+  :root { --bg: #f6f4ef; --card: #ffffff; --ink: #1d2328; --soft: #5b6670; --line: #d9dde1; --go: #e8610c; --go-ink: #1a0800; --btn: #e9edf0; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111518; --card: #1b2126; --ink: #e9eef2; --soft: #9aa7b1; --line: #2c353c; --btn: #263038; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; padding: 24px 16px 40px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  .sub { color: var(--soft); margin: 0 0 20px; }
+  ol { list-style: none; padding: 0; margin: 0 0 20px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--line); }
+  li:first-child { border-top: 0; }
+  .n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--btn); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+  .name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .dest { font-size: 13px; color: var(--soft); display: block; }
+  a.btn { display: block; text-align: center; text-decoration: none; font-weight: 800; padding: 15px 12px; border-radius: 14px; margin: 0 0 10px; background: var(--btn); color: var(--ink); }
+  a.btn.go { background: var(--go); color: var(--go-ink); }
+  a.waze { flex: none; font-size: 14px; font-weight: 700; color: var(--ink); background: var(--btn); padding: 6px 10px; border-radius: 10px; text-decoration: none; }
+  .note { color: var(--soft); font-size: 14px; margin: 18px 0 0; }
+  .bad { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+</style>
+</head>
+<body>
+<main id="m">
+  <h1>Ride with me</h1>
+  <p class="sub" id="sub">A trip from DYNOMATRIX Weather Map Lab</p>
+  <div id="trip"></div>
+  <p class="note">Have DYNOMATRIX Weather Map Lab on this phone? The link opens the trip right in the app. If it opened
+    here instead: Android Settings &gt; Apps &gt; Weather Map Lab &gt; Open by default &gt; turn on "Open supported links",
+    then tap the link again.</p>
+  <p class="note">The trip is carried in the link itself. This page doesn't store it, send it anywhere, or use cookies.</p>
+</main>
+<script>
+(function () {
+  // "#1/lat,lng,name/lat,lng,name..." - the stops, then the destination (Weather Map Lab, TripShareText.appLink)
+  var trip = document.getElementById("trip");
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function dec(s) { try { return decodeURIComponent(s.replace(/\+/g, " ")); } catch (e) { return ""; } }
+  var h = location.hash || "";
+  var places = [];
+  if (h.indexOf("#1/") === 0) {
+    var parts = h.slice(3).split("/").filter(function (p) { return p.length > 0; });
+    if (parts.length <= 20) {
+      for (var i = 0; i < parts.length; i++) {
+        var f = parts[i].split(",");
+        var lat = parseFloat(f[0]), lng = parseFloat(f[1]);
+        if (!(lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180)) { places = []; break; }
+        var name = f.length > 2 ? dec(f.slice(2).join(",")).trim().slice(0, 120) : "";
+        places.push({ lat: lat.toFixed(6), lng: lng.toFixed(6), name: name });
+      }
+    }
+  }
+  if (!places.length) {
+    trip.appendChild(el("p", "bad", "This link doesn't hold a trip - it may have been cut short. Ask for it to be sent again."));
+    return;
+  }
+  var dest = places[places.length - 1];
+  document.getElementById("sub").textContent = places.length === 1
+    ? "To " + (dest.name || "the shared spot")
+    : places.length - 1 + (places.length === 2 ? " stop, then " : " stops, then ") + (dest.name || "the destination");
+  var list = el("ol");
+  places.forEach(function (p, i) {
+    var li = el("li");
+    li.appendChild(el("span", "n", String(i + 1)));
+    var nm = el("span", "name", p.name || (i === places.length - 1 ? "Destination" : "Stop " + (i + 1)));
+    if (i === places.length - 1) nm.appendChild(el("span", "dest", "destination"));
+    li.appendChild(nm);
+    var w = el("a", "waze", "Waze");
+    w.href = "https://waze.com/ul?ll=" + encodeURIComponent(p.lat + "," + p.lng) + "&navigate=yes";
+    li.appendChild(w);
+    list.appendChild(li);
+  });
+  trip.appendChild(list);
+  var g = el("a", "btn go", "Open in Google Maps (every stop)");
+  var wp = places.slice(0, -1).slice(0, 9).map(function (p) { return p.lat + "," + p.lng; }).join("|");
+  g.href = "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(dest.lat + "," + dest.lng) +
+    (wp ? "&waypoints=" + encodeURIComponent(wp) : "") + "&travelmode=driving";
+  trip.appendChild(g);
+})();
+</script>
+</body>
+</html>

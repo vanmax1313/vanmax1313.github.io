@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.dynomatrix.weathermaplab",
+      "sha256_cert_fingerprints": [
+        "43:E9:B1:2A:66:63:BA:35:8F:99:89:38:AE:50:D7:02:69:72:77:E4:E5:FE:41:FE:A7:02:AC:FF:E4:C3:B8:1B",
+        "2D:60:DC:0E:61:B6:68:19:A4:C1:9E:16:4E:5E:8E:05:CB:87:AF:9E:5A:5F:38:22:A9:FC:F6:82:D1:BC:67:38"
+      ]
+    }
+  }
+]
